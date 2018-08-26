@@ -13,6 +13,11 @@ extern "C" {
 #include <gif_lib.h>
 }
 
+#define NANOSVG_IMPLEMENTATION
+#include <nanosvg.h>
+#define NANOSVGRAST_IMPLEMENTATION
+#include <nanosvgrast.h>
+
 extern const uint32_t crc32_table[256];
 
 DEFINE_REF(ePicLoad);
@@ -518,6 +523,39 @@ inline void m_rend_gif_decodecolormap(unsigned char *cmb, unsigned char *rgbb, C
 	}
 }
 
+static void svg_load(Cfilepara* filepara)
+{
+	NSVGimage *image = nullptr;
+	NSVGrasterizer *rast = nullptr;
+	unsigned char *pic_buffer = nullptr;
+	int w = 0;
+	int h = 0;
+	double scale = 1.0;
+
+	image = nsvgParseFromFile(filepara->file, "px", 96.0f);
+	if (image == nullptr)
+	{
+		goto error;
+	}
+	w = (int)image->width;
+	h = (int)image->height;
+	rast = nsvgCreateRasterizer();
+	if (rast == nullptr)
+	{
+		goto error;
+	}
+	pic_buffer = (unsigned char*)malloc(w*h*4);
+	// Rasterizes SVG image, returns RGBA image (non-premultiplied alpha)
+	nsvgRasterize(rast, image, 0, 0, scale, pic_buffer, w, h, w*scale*4);
+	filepara->pic_buffer = pic_buffer;
+	filepara->bits = 32;
+	filepara->ox = w;
+	filepara->oy = h;
+error:
+	nsvgDeleteRasterizer(rast);
+	nsvgDelete(image);
+}
+
 static void gif_load(Cfilepara* filepara, bool forceRGB = false)
 {
 	unsigned char *pic_buffer = NULL;
@@ -746,6 +784,8 @@ void ePicLoad::decodePic()
 				break;
 		case F_GIF:	gif_load(m_filepara);
 				break;
+		case F_SVG:	svg_load(m_filepara);
+				break;
 	}
 }
 
@@ -824,7 +864,7 @@ void ePicLoad::decodeThumb()
 
 		if (!(fp = fopen(m_filepara->file, "rb")))
 			return; // software decode won't find the file either...
-		
+
 		if (get_jpeg_img_size(fp, (unsigned int *)&m_filepara->ox, (unsigned int *)&m_filepara->oy) == LIBMMEIMG_SUCCESS)
 		{
 			int imx, imy;
@@ -838,7 +878,7 @@ void ePicLoad::decodeThumb()
 				imx = m_conf.thumbnailsize;
 				imy = (int)( (m_conf.thumbnailsize * ((double)m_filepara->oy)) / ((double)m_filepara->ox) );
 			}
-			
+
 			if (decode_jpeg(fp, m_filepara->ox, m_filepara->oy, imx, imy, (char **)&m_filepara->pic_buffer) == LIBMMEIMG_SUCCESS)
 			{
 				m_filepara->ox = imx;
@@ -851,7 +891,7 @@ void ePicLoad::decodeThumb()
 		if (!hw_decoded)
 		{
 			eDebug("hardware decode error");
-		
+
 			fclose(fp);
 		}
 	}
@@ -868,7 +908,8 @@ void ePicLoad::decodeThumb()
 				break;
 		case F_GIF:	gif_load(m_filepara, true);
 				break;
-		}
+		case F_SVG:	svg_load(m_filepara);
+				break;
 	}
 	//eDebug("[ePicLoad] getThumb picture loaded %s", m_filepara->file);
 
@@ -886,7 +927,7 @@ void ePicLoad::decodeThumb()
 			// Resize for Thumbnail
 			if(!hw_decoded)
 			{
-			
+
 				int imx, imy;
 				if (m_filepara->ox <= m_filepara->oy)
 				{
@@ -1430,6 +1471,8 @@ int ePicLoad::getFileType(const char * file)
 	else if (id[0] == 0xff && id[1] == 0xd8 && id[2] == 0xff)			return F_JPEG;
 	else if (id[0] == 'B'  && id[1] == 'M' )					return F_BMP;
 	else if (id[0] == 'G'  && id[1] == 'I'  && id[2] == 'F')			return F_GIF;
+	else if (id[0] == '<'  && id[1] == 's'  && id[2] == 'v' && id[3] == 'g')	return F_SVG;
+	else if (strstr(file, ".svg"))							return F_SVG;
 	return -1;
 }
 
