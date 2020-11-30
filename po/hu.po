@@ -3746,9 +3746,8 @@ msgstr "Előretekerési sebességek"
 msgid "FastScan"
 msgstr "Szolgáltatói keresés"
 
-#, fuzzy
-msgid "Fastscan"
-msgstr "Szolgáltatói keresés"
+msgid "FastScan"
+msgstr "Gyorskeresés"
 
 msgid "Favourites"
 msgstr "Kedvencek"

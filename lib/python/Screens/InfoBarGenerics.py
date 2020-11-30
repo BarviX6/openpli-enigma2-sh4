@@ -884,10 +884,6 @@ class InfoBarChannelSelection:
 	def openServiceList(self):
 		self.session.execDialog(self.servicelist)
 
-	def openSatellites(self):
-		self.session.execDialog(self.servicelist)
-		self.servicelist.showSatellites()
-
 	def volumeUp(self):
 		VolumeControl.instance and VolumeControl.instance.volUp()
 
