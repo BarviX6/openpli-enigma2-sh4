@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: enigma2\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-01 09:48+0000\n"
-"PO-Revision-Date: 2020-07-08 18:12+0200\n"
+"PO-Revision-Date: 2020-11-30 18:56+0100\n"
 "Last-Translator: Oriol Pellicer <oriol@elsud.org>\n"
 "Language-Team: angelodos angelo2807@hotmail.com\n"
 "Language: ca\n"
@@ -4176,7 +4176,6 @@ msgstr "Velocitats d’avanç ràpides"
 msgid "FastScan"
 msgstr "Escaneig ràpid"
 
-#, fuzzy
 msgid "Fastscan"
 msgstr "Escaneig ràpid"
 
@@ -8995,11 +8994,6 @@ msgstr "Mostra les icones del rellotge de registre"
 msgid "Show record indicator"
 msgstr "Mostra l’indicador de registre"
 
-#, fuzzy
-msgid "Show satellites list"
-msgstr "Mostra la llista de serveis"
-
-#, fuzzy
 msgid "Show screen path"
 msgstr "Mostra el camí de la pantalla"
 
