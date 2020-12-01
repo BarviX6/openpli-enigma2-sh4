@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PLi enigma2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-27 17:04+0100\n"
-"PO-Revision-Date: 2020-12-01 08:36+0200\n"
+"POT-Creation-Date: 2020-12-01 09:56+0000\n"
+"PO-Revision-Date: 2020-11-24 15:26+0200\n"
 "Last-Translator: Audronis Grincevicius <adga45@gmail.com>\n"
 "Language-Team: Adga (C) <adga45@gmail.com>\n"
 "Language: lt_LT\n"
@@ -3761,6 +3761,7 @@ msgstr "Spartaus prasukimo pirmyn greičiai"
 msgid "FastScan"
 msgstr "Greita paieška"
 
+#, fuzzy
 msgid "Fastscan"
 msgstr "Greita paieška"
 
@@ -8039,6 +8040,10 @@ msgstr "Su laikrodžiu rodyti įrašų piktogramas"
 
 msgid "Show record indicator"
 msgstr "Rodyti įrašymo indikatorių"
+
+#, fuzzy
+msgid "Show satellites list"
+msgstr "Rodyti kanalų sąrašą"
 
 msgid "Show screen path"
 msgstr "Rodyti ekrano kelią"

@@ -4,8 +4,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: enigma2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-27 17:04+0100\n"
-"PO-Revision-Date: 2020-11-30 18:00+0100\n"
+"POT-Creation-Date: 2020-12-01 09:56+0000\n"
+"PO-Revision-Date: 2020-07-06 20:46+0200\n"
 "Last-Translator: Jose Juan <jzapater@gmail.com>\n"
 "Language-Team: ANGELODOS  angelo2807@hotmail.com\n"
 "Language: es\n"
@@ -4175,6 +4175,7 @@ msgstr "Velocidades hacia delante"
 msgid "FastScan"
 msgstr "Exploración rápida"
 
+#, fuzzy
 msgid "Fastscan"
 msgstr "Exploración rápida"
 
@@ -8974,6 +8975,11 @@ msgstr "Mostrar iconos de reloj de registro"
 msgid "Show record indicator"
 msgstr "Mostrar indicador de registro"
 
+#, fuzzy
+msgid "Show satellites list"
+msgstr "Mostrar lista de servicios"
+
+#, fuzzy
 msgid "Show screen path"
 msgstr "Mostrar ruta de pantalla"
 
