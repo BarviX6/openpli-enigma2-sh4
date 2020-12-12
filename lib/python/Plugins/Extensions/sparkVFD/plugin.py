@@ -1,4 +1,6 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 from Plugins.Plugin import PluginDescriptor
 from ServiceReference import ServiceReference
 from Components.ServiceList import ServiceList
@@ -15,26 +17,11 @@ from Components.Language import language
 from Components.Sources.StaticText import StaticText
 from Tools.HardwareInfo import HardwareInfo
 from Screens.Screen import Screen
+from translit import translify
 import gettext
-#Version 140722.4
+
 stb = HardwareInfo().get_device_name()
-lang = language.getLanguage()
-environ['LANGUAGE'] = lang[:2]
-gettext.bindtextdomain('enigma2', resolveFilename(SCOPE_LANGUAGE))
-gettext.textdomain('enigma2')
-gettext.bindtextdomain('VFD-Icons', '%s%s' % (resolveFilename(SCOPE_PLUGINS), 'SystemPlugins/VFD-Icons/locale/'))
 
-def _(txt):
-	t = gettext.dgettext('VFD-Icons', txt)
-	if t == txt:
-		t = gettext.gettext(txt)
-	return t
-
-def translateBlock(block):
-	for x in TranslationHelper:
-		if block.__contains__(x[0]):
-			block = block.replace(x[0], x[1])
-	return block
 
 try:
 	DisplayType = evfd.getInstance().getVfdType()
@@ -85,6 +72,12 @@ config.plugins.vfdicon.recredledon = ConfigSelection(default = "2",
 		("1", _("on")),
 		("2", _("blink"))
 		])
+config.plugins.vfdicon.translit = ConfigYesNo(default = True)
+config.plugins.vfdicon.translit = ConfigSelection(default = "1",
+	choices = [
+		("0", _("off")),
+		("1", _("on")),
+		])		
 config.plugins.vfdicon.extMenu = ConfigYesNo(default=True)
 
 class ConfigVFDDisplay(Screen, ConfigListScreen):
@@ -119,13 +112,14 @@ class ConfigVFDDisplay(Screen, ConfigListScreen):
 		self.cfglist.append(getConfigListEntry(_('Red LED on in standby'), config.plugins.vfdicon.standbyredledon))
 		self.cfglist.append(getConfigListEntry(_('Red LED on in deep standby'), config.plugins.vfdicon.dstandbyredledon))
 		self.cfglist.append(getConfigListEntry(_('Red LED during recording'), config.plugins.vfdicon.recredledon))
+		self.cfglist.append(getConfigListEntry(_('Enable translit?'), config.plugins.vfdicon.translit))		
 	        self.cfglist.append(getConfigListEntry(_('Show this plugin in plugin menu'), config.plugins.vfdicon.extMenu))
 		self["config"].list = self.cfglist
 		self["config"].l.setList(self.cfglist)
 
 	def newConfig(self):
 		global DisplayType
-		print "newConfig", self["config"].getCurrent()
+		print("newConfig", self["config"].getCurrent())
 		self.createSetup()
 
 	def cancel(self):
@@ -138,7 +132,7 @@ class ConfigVFDDisplay(Screen, ConfigListScreen):
 			evfd.getInstance().vfd_set_SCROLL(int(config.plugins.vfdicon.textscroll.value))
 		else:
 			evfd.getInstance().vfd_set_SCROLL(1)
-		print "[VFD-Icons] set text scroll", config.plugins.vfdicon.textscroll.value
+		print("[sparkVFD] set text scroll", config.plugins.vfdicon.textscroll.value)
 		main(self)
 		ConfigListScreen.keySave(self)
 
@@ -172,7 +166,7 @@ class VFDIcons:
 	def __init__(self, session):
 		self.session = session
 		self.onClose = []
-		print '[VFD-Icons] Start'
+		print('[sparkVFD] Start')
 		self.play = False
 		self.record = False
 		self.mp3Available = False
@@ -183,8 +177,8 @@ class VFDIcons:
 		global DisplayType
 		global dot
 		dot = 0
-		print '[VFD-Icons] Hardware displaytype:', DisplayType
-		print '[VFD-Icons] VFD displaytype     :', DisplayTypevfd
+		print('[sparkVFD] Hardware displaytype:', DisplayType)
+		print('[sparkVFD] VFD displaytype     :', DisplayTypevfd)
 		if DisplayType == 4:
 			self.__event_tracker = ServiceEventTracker(screen = self,eventmap =
 				{
@@ -199,23 +193,23 @@ class VFDIcons:
 				{
 					iPlayableService.evStart: self.writeName,
 				})
-		print '[VFD-Icons] Set text scrolling option'
+		print('[sparkVFD] Set text scrolling option')
 		if config.plugins.vfdicon.textscroll.value is not None:
 			evfd.getInstance().vfd_set_SCROLL(int(config.plugins.vfdicon.textscroll.value))
 		else:
 			evfd.getInstance().vfd_set_SCROLL(1)
-		print '[VFD-Icons] End initialisation'
+		print('[sparkVFD] End initialisation')
 
 	def __evStart(self):
-		print '[VFD-Icons] __evStart'
+		print('[sparkVFD] __evStart')
 #		... and do nothing else
 
 	def __evUpdatedEventInfo(self):
-		print '[VFD-Icons] __evUpdatedEventInfo'
+		print('[sparkVFD] __evUpdatedEventInfo')
 #		... and do nothing else
 
 	def UpdatedInfo(self):
-		print '[VFD-Icons] __evUpdatedInfo'
+		print('[sparkVFD] __evUpdatedInfo')
 		self.checkAudioTracks()
 		self.writeName()
 
@@ -253,6 +247,8 @@ class VFDIcons:
 							servicename = ServiceReference(service).getServiceName()
 			if config.plugins.vfdicon.uppercase.value is not None:
 				servicename = servicename.upper()
+			if config.plugins.vfdicon.translit.value:
+				servicename = translify(servicename)				
 			evfd.getInstance().vfd_write_string(servicename[0:63])
 
 	def checkAudioTracks(self):
@@ -350,7 +346,7 @@ class VFDIcons:
 		else:
 			evfd.getInstance().vfd_clear_string()
 		self.standby = True
-		print "[VFD-Icons] set display on Enter Standby"
+		print("[sparkVFD] set display on Enter Standby")
 
 
 VFDIconsInstance = None
@@ -370,20 +366,20 @@ def main(session, **kwargs):
 
 def Plugins(**kwargs):
 	l = [PluginDescriptor(
-		name = _("LED display"),
+		name = _("sparkVFD"),
 		description = _("LED display configuration"),
 		where = PluginDescriptor.WHERE_MENU,
 		fnc = LEDdisplaymenu),
 		PluginDescriptor(
-		name = _("VFD-Icons"),
+		name = _("sparkVFD"),
 		description = _("LED display control Spark"),
 		where = PluginDescriptor.WHERE_SESSIONSTART,
 		fnc = main)]
 	if config.plugins.vfdicon.extMenu.value:
 		l.append(PluginDescriptor(
-			name = _("LED display"),
+			name = _("sparkVFD"),
 			description = _("LED display configuration for Spark"),
 			where = PluginDescriptor.WHERE_PLUGINMENU,
-			icon = _("leddisplay.png"),
+			icon = _("leddisplay.png"),			
 			fnc = opencfg))
 	return l
