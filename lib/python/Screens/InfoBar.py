@@ -236,8 +236,6 @@ class MoviePlayer(InfoBarBase, InfoBarShowHide, InfoBarMenu, InfoBarSeek, InfoBa
 
 		self["actions"] = HelpableActionMap(self, "MoviePlayerActions",
 			{
-				"InfoButtonPressed": (self.openEventView, _("open Info...")),
-				"InfoButtonPressedLong": (self.showEventInfoPlugins, _("select Info...")),
 				"leavePlayer": (self.leavePlayer, _("leave movie player...")),
 				"leavePlayerOnExit": (self.leavePlayerOnExit, _("leave movie player...")),
 				"channelUp": (self.channelUp, _("when PiPzap enabled zap channel up...")),
@@ -430,7 +428,6 @@ class MoviePlayer(InfoBarBase, InfoBarShowHide, InfoBarMenu, InfoBarSeek, InfoBa
 			ref = self.session.nav.getCurrentlyPlayingServiceOrGroup()
 			if ref:
 				delResumePoint(ref)
-			self.session.nav.stopService()
 			self.handleLeave(config.usage.on_movie_eof.value)
 
 	def up(self):
