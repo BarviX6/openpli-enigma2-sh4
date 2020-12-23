@@ -331,6 +331,8 @@ lib/python/Plugins/Extensions/SocketMMI/meta/Makefile
 lib/python/Plugins/Extensions/SocketMMI/src/Makefile
 lib/python/Plugins/Extensions/sparkVFD/Makefile
 lib/python/Plugins/Extensions/sparkVFD/meta/Makefile
+lib/python/Plugins/Extensions/spark7162VFD/Makefile
+lib/python/Plugins/Extensions/spark7162VFD/meta/Makefile
 lib/python/Plugins/PLi/Makefile
 lib/python/Plugins/SystemPlugins/CommonInterfaceAssignment/Makefile
 lib/python/Plugins/SystemPlugins/CommonInterfaceAssignment/meta/Makefile
