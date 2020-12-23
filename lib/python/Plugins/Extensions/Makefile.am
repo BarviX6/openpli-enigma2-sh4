@@ -1,17 +1,9 @@
 installdir = $(pkglibdir)/python/Plugins/Extensions
 
-SUBDIRS = CutListEditor PicturePlayer MediaScanner MediaPlayer GraphMultiEPG SocketMMI DVDBurn
+SUBDIRS = CutListEditor PicturePlayer MediaScanner MediaPlayer GraphMultiEPG SocketMMI DVDBurn spark7162VFD sparkVFD
 
 if HAVE_LIBDDVD
 SUBDIRS += DVDPlayer
-endif
-
-if ENABLE_SPARK
-SUBDIRS += sparkVFD
-endif
-
-if ENABLE_SPARK7162
-SUBDIRS += spark7162VFD
 endif
 
 install_PYTHON =	\
