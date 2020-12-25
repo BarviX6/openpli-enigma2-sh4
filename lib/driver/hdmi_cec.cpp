@@ -500,7 +500,8 @@ void eHdmiCEC::sendMessage(struct cec_message &message)
 		}
 		else
 		{
-			::write(hdmiFd, &message, 2 + message.length);
+			ssize_t ret = ::write(hdmiFd, &message, 2 + message.length);
+			if (ret < 0) eDebug("[eHdmiCEC] write failed: %m");
 		}
 	}
 }
