@@ -285,7 +285,7 @@ CXXFLAGS="$CXXFLAGS -Wall -Werror \
 	-Wfloat-equal -Wlogical-op \
 	-Wno-error=shadow -Wno-error=cast-qual \
 	-Wno-error=aggregate-return -Wno-error=missing-field-initializers \
-	-Wno-error=packed -Wno-error=vla \
+	-Wno-error=packed -Wno-error=vla -Wno-error=unused-variable \
 	$BASE_CFLAGS $ENIGMA2_CFLAGS $PTHREAD_CFLAGS $OPENMP_CFLAGS $ALSA_CFLAGS"
 
 AC_CONFIG_FILES([
