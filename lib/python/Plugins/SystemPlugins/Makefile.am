@@ -5,7 +5,11 @@ SUBDIRS = SoftwareManager PositionerSetup Satfinder \
 	DefaultServicesScanner DiseqcTester CommonInterfaceAssignment \
 	CableScan FastScan OSDPositionSetup OSD3DSetup HdmiCEC VideoClippingSetup \
 	VideoEnhancement WirelessLan NetworkWizard \
-	SH4OSDAdjustment WirelessLan SparkUnionTunerType
+	SH4OSDAdjustment WirelessLan
+
+if ENABLE_SPARK7162
+SUBDIRS += SparkUnionTunerType
+endif
 
 install_PYTHON =	\
 	__init__.py
