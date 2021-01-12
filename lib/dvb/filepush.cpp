@@ -173,7 +173,7 @@ void eFilePushThread::thread()
 						}
 #else
 						continue;
-#endif;
+#endif
 						case 1:
 							eDebug("[eFilePushThread] wait for driver eof ok");
 							break;
@@ -251,7 +251,7 @@ void eFilePushThread::thread()
 		}
 #if defined(__sh__) // closes video device for the reverse playback workaround
 		close(fd_video);
-#endi
+#endif
 		sendEvent(evtStopped);
 
 		{ /* mutex lock scope */
