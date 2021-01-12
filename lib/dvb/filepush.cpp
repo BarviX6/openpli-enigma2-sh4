@@ -95,12 +95,12 @@ void eFilePushThread::thread()
 				int param = DVB_DISCONTINUITY_SKIP; // | DVB_DISCONTINUITY_CONTINUOUS_REVERSE;
 				int rc = ioctl(fd_video, VIDEO_DISCONTINUITY, (void*)param);
 			}
-#endif				
-				m_sg->getNextSourceSpan(m_current_position, bytes_read, current_span_offset, current_span_remaining, m_blocksize, m_sof);
-				ASSERT(!(current_span_remaining % m_blocksize));
-				m_current_position = current_span_offset;
-				bytes_read = 0;
-			}
+#endif
+			m_sg->getNextSourceSpan(m_current_position, bytes_read, current_span_offset, current_span_remaining, m_blocksize, m_sof);
+			ASSERT(!(current_span_remaining % m_blocksize));
+			m_current_position = current_span_offset;
+			bytes_read = 0;
+		}
 
 			size_t maxread = m_buffersize;
 
