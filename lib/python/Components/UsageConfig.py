@@ -117,7 +117,7 @@ def InitUsageConfig():
 	config.usage.next_movie_msg = ConfigYesNo(default=True)
 	config.usage.last_movie_played = ConfigText()
 	config.usage.leave_movieplayer_onExit = ConfigSelection(default="popup", choices=[("no", _("no")), ("popup", _("With popup")), ("without popup", _("Without popup")), ("movielist", _("Return to movie list"))])
-	config.usage.setup_level = ConfigSelection(default="simple", choices=[("simple", _("Normal")), ("intermediate", _("Advanced")), ("expert", _("Expert"))])
+	config.usage.setup_level = ConfigSelection(default="expert", choices=[("simple", _("Normal")), ("intermediate", _("Advanced")), ("expert", _("Expert"))])
 	config.usage.startup_to_standby = ConfigSelection(default="no", choices=[("no", _("no")), ("yes", _("yes")), ("except", _("No, except Wakeup timer"))])
 
 	config.usage.wakeup_enabled = ConfigSelection(default="no", choices=[("no", _("no")), ("yes", _("yes")), ("standby", _("Yes, only from standby")), ("deepstandby", _("Yes, only from deep standby"))])
