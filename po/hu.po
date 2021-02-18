@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: enigma2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-01-27 18:30+0100\n"
+"POT-Creation-Date: 2021-02-17 20:18+0100\n"
 "PO-Revision-Date: 2020-12-05 15:11+0100\n"
 "Last-Translator: mcfly82\n"
 "Language-Team: mcfly82 & wysless\n"
@@ -3906,9 +3906,6 @@ msgstr "További beállítások"
 msgid "G"
 msgstr "G"
 
-msgid "GStreamer version: "
-msgstr "GStreamer verzió: "
-
 msgid "GUI Settings"
 msgstr "Kezelőfelület beállítása"
 
@@ -5041,6 +5038,13 @@ msgstr "Mayotte"
 msgid "Media player"
 msgstr "Médialejátszó"
 
+#, fuzzy
+msgid "Media player: GStreamer, version "
+msgstr "GStreamer verzió: "
+
+msgid "Media player: ffmpeg, version "
+msgstr ""
+
 msgid "Media scanner"
 msgstr "Média kereső"
 
@@ -5615,9 +5619,6 @@ msgstr "Norvég"
 
 msgid "Not Installed"
 msgstr "Nincs telepítve"
-
-msgid "Not Required"
-msgstr "Nem szükséges"
 
 msgid "Not associated"
 msgstr "Nem-csatlakozott"
