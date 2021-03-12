@@ -10,6 +10,9 @@
 extern "C" {
 #define HAVE_BOOLEAN
 #define boolean int
+#if defined HAVE_STDLIB_H
+#undef HAVE_STDLIB_H
+#endif
 #include <jpeglib.h>
 #include <gif_lib.h>
 }
@@ -20,6 +23,8 @@ extern "C" {
 #define NANOSVGRAST_IMPLEMENTATION
 #include <nanosvgrast.h>
 
+//#define HARDWARE_DECODING
+
 extern const uint32_t crc32_table[256];
 
 DEFINE_REF(ePicLoad);
@@ -27,9 +32,12 @@ DEFINE_REF(ePicLoad);
 static std::string getSize(const char* file)
 {
 	struct stat64 s;
+	char tmp[20];
+	
 	if (stat64(file, &s) < 0)
 		return "";
-	return std::to_string((long)(s.st_size / 1024)) + " kB";
+	snprintf(tmp, 20, "%ld kB", (long)s.st_size / 1024);
+	return tmp;	
 }
 
 static unsigned char *color_resize(unsigned char * orgin, int ox, int oy, int dx, int dy)
@@ -605,11 +613,9 @@ static void gif_load(Cfilepara* filepara, bool forceRGB = false)
 	int cmaps;
 	int extcode;
 
-#if GIFLIB_MAJOR > 5 || GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1
-	gft = DGifOpenFileName(filepara->file, &extcode);
-#else
-	gft = DGifOpenFileName(filepara->file);
-#endif
+	int GifLastError;
+
+	gft = DGifOpenFileName(filepara->file, &GifLastError);	
 	if (gft == NULL)
 		return;
 	do
@@ -699,19 +705,11 @@ static void gif_load(Cfilepara* filepara, bool forceRGB = false)
 	}
 	while (rt != TERMINATE_RECORD_TYPE);
 
-#if GIFLIB_MAJOR > 5 || GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1
-	DGifCloseFile(gft, &extcode);
-#else
-	DGifCloseFile(gft);
-#endif
+	DGifCloseFile(gft, &GifLastError);
 	return;
 ERROR_R:
 	eDebug("[ePicLoad] <Error gif>");
-#if GIFLIB_MAJOR > 5 || GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1
-	DGifCloseFile(gft, &extcode);
-#else
-	DGifCloseFile(gft);
-#endif
+	DGifCloseFile(gft, &GifLastError)
 }
 
 //---------------------------------------------------------------------------------------------
@@ -776,13 +774,26 @@ void ePicLoad::thread()
 
 void ePicLoad::decodePic()
 {
-	eDebug("[ePicLoad] decode picture... %s", m_filepara->file);
-
 	getExif(m_filepara->file, m_filepara->id);
-
+#ifndef HARDWARE_DECODING	
+	eDebug("[ePicLoad] decode picture... %s", m_filepara->file);
+	switch(m_filepara->id)
+	{
+		case F_PNG:	png_load(m_filepara, m_conf.background);
+				break;
+		case F_JPEG:	m_filepara->pic_buffer = jpeg_load(m_filepara->file, &m_filepara->ox, &m_filepara->oy, m_filepara->max_x, m_filepara->max_y);
+				break;
+		case F_BMP:	m_filepara->pic_buffer = bmp_load(m_filepara->file, &m_filepara->ox, &m_filepara->oy);
+				break;
+		case F_GIF:	gif_load(m_filepara);
+				break;
+		case F_SVG:	svg_load(m_filepara);
+				break;
+	}
+#else
 	if (m_filepara->id == F_JPEG)
 	{
-		eDebug("[ePicLoad] hardware decode picture... %s", m_filepara->file);
+		eDebug("[ePicLoad] hardware decode picture... %s", m_filepara->file)
 		m_filepara->pic_buffer = NULL;
 		FILE *fp;
 
@@ -809,21 +820,7 @@ void ePicLoad::decodePic()
 		m_filepara->pic_buffer = NULL;
 	}
 
-	//eDebug("[ePicLoad] decode picture... %s", m_filepara->file);
-
-	switch(m_filepara->id)
-	{
-		case F_PNG:	png_load(m_filepara, m_conf.background);
-				break;
-		case F_JPEG:	m_filepara->pic_buffer = jpeg_load(m_filepara->file, &m_filepara->ox, &m_filepara->oy, m_filepara->max_x, m_filepara->max_y);
-				break;
-		case F_BMP:	m_filepara->pic_buffer = bmp_load(m_filepara->file, &m_filepara->ox, &m_filepara->oy);
-				break;
-		case F_GIF:	gif_load(m_filepara);
-				break;
-		case F_SVG:	svg_load(m_filepara);
-				break;
-	}
+#endif
 }
 
 void ePicLoad::decodeThumb()
@@ -892,6 +889,7 @@ void ePicLoad::decodeThumb()
 		}
 	}
 
+#if defined HARDWARE_DECODING
 	int hw_decoded = 0;
 	if (m_filepara->id == F_JPEG)
 	{
@@ -901,7 +899,7 @@ void ePicLoad::decodeThumb()
 
 		if (!(fp = fopen(m_filepara->file, "rb")))
 			return; // software decode won't find the file either...
-
+		
 		if (get_jpeg_img_size(fp, (unsigned int *)&m_filepara->ox, (unsigned int *)&m_filepara->oy) == LIBMMEIMG_SUCCESS)
 		{
 			int imx, imy;
@@ -928,12 +926,13 @@ void ePicLoad::decodeThumb()
 		if (!hw_decoded)
 		{
 			eDebug("hardware decode error");
-
+		
 			fclose(fp);
 		}
 	}
 
 	if (!hw_decoded)
+#endif
 	{
 		switch(m_filepara->id)
 		{
@@ -962,29 +961,32 @@ void ePicLoad::decodeThumb()
 				::mkdir(cachedir.c_str(), 0755);
 
 			// Resize for Thumbnail
-			if(!hw_decoded)
+#if defined HARDWARE_DECODING
+			if (!hw_decoded)
+#endif
 			{
-
 				int imx, imy;
 				if (m_filepara->ox <= m_filepara->oy)
 				{
 					imy = m_conf.thumbnailsize;
-					imx = (int)( (m_conf.thumbnailsize * ((double)m_filepara->ox)) / ((double)m_filepara->oy) );
+					imx = (int)((m_conf.thumbnailsize * ((double)m_filepara->ox)) / ((double)m_filepara->oy));
 				}
 				else
 				{
 					imx = m_conf.thumbnailsize;
-					imy = (int)( (m_conf.thumbnailsize * ((double)m_filepara->oy)) / ((double)m_filepara->ox) );
+					imy = (int)((m_conf.thumbnailsize * ((double)m_filepara->oy)) / ((double)m_filepara->ox));
 				}
 
-			// eDebug("[ePicLoad] getThumb resize from %dx%d to %dx%d", m_filepara->ox, m_filepara->oy, imx, imy);
+				// eDebug("[ePicLoad] getThumb resize from %dx%d to %dx%d", m_filepara->ox, m_filepara->oy, imx, imy);
 				m_filepara->pic_buffer = color_resize(m_filepara->pic_buffer, m_filepara->ox, m_filepara->oy, imx, imy);
 				m_filepara->ox = imx;
 				m_filepara->oy = imy;
 			}
 
 			if (jpeg_save(cachefile.c_str(), m_filepara->ox, m_filepara->oy, m_filepara->pic_buffer))
+			{
 				eDebug("[ePicLoad] getThumb: error saving cachefile");
+			}
 		}
 	}
 }
@@ -1095,7 +1097,7 @@ PyObject *ePicLoad::getInfo(const char *filename)
 {
 	ePyObject list;
 
-	// FIXME : m_filepara destroyed by getData. Need refactor this but plugins rely in it :(
+	// FIXME : m_filepara destroyed by getData. Need refactor this but plugins rely on it :(
 	getExif(filename, m_filepara ? m_filepara->id : -1);
 	if(m_exif && m_exif->m_exifinfo->IsExif)
 	{
@@ -1366,7 +1368,7 @@ int ePicLoad::getData(ePtr<gPixmap> &result)
 	// Fill surface with image data, resize and correct for orientation on the fly
 	if (m_filepara->bits == 8)
 	{
-		#pragma omp parallel for
+//		#pragma omp parallel for
 		for (int y = 0; y < scry; ++y) {
 			const unsigned char *irow, *irowy = origin + iyfac * (int)(y * yscale);
 			unsigned char *srow = tmp_buffer + surface->stride * y;
