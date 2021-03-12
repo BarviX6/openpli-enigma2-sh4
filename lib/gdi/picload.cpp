@@ -41,7 +41,7 @@ static unsigned char *color_resize(unsigned char * orgin, int ox, int oy, int dx
 		return orgin;
 	}
 	const int stride = 3 * dx;
-	#pragma omp parallel for
+//	#pragma omp parallel for
 	for (int j = 0; j < dy; j++)
 	{
 		unsigned char* p = cr + (j * stride);
@@ -1254,11 +1254,11 @@ int ePicLoad::getData(ePtr<gPixmap> &result)
 					*row_buffer++ = background;
 			}
 			int y;
-			#pragma omp parallel for
+//			#pragma omp parallel for
 			for (y = 1; y < yoff; ++y) // copy from first line
 				memcpy(tmp_buffer + y*surface->stride, tmp_buffer,
 					m_filepara->max_x * surface->bypp);
-			#pragma omp parallel for
+//			#pragma omp parallel for
 			for (y = yoff + scry; y < m_filepara->max_y; ++y)
 				memcpy(tmp_buffer + y * surface->stride, tmp_buffer,
 					m_filepara->max_x * surface->bypp);
@@ -1283,7 +1283,7 @@ int ePicLoad::getData(ePtr<gPixmap> &result)
 				for (x = xoff + scrx; x < m_filepara->max_x; ++x) // fill right side of first line
 					*row_buffer++ = background;
 			}
-			#pragma omp parallel for
+//			#pragma omp parallel for
 			for (int y = yoff + 1; y < scry; ++y) { // copy from first line
 				memcpy(tmp_buffer + y*surface->stride,
 					tmp_buffer + yoff * surface->stride,
@@ -1380,7 +1380,7 @@ int ePicLoad::getData(ePtr<gPixmap> &result)
 	}
 	else // 24-bit images
 	{
-		#pragma omp parallel for
+//		#pragma omp parallel for
 		for (int y = 0; y < scry; ++y) {
 			const unsigned char *irow, *irowy = origin + iyfac * (int)(yscale * y);
 			unsigned char *srow = tmp_buffer + surface->stride * y;
