@@ -105,7 +105,7 @@ evfd* evfd::getInstance()
 
 evfd::evfd()
 {
-if defined (ENABLE_SPARK) \
+#if defined (ENABLE_SPARK) \
  || defined (ENABLE_SPARK7162)
 	int fd;
 	int n;
