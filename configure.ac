@@ -224,6 +224,17 @@ elif test x"$with_alphablendingacceleration" = xalways ; then
 	AC_DEFINE_UNQUOTED(FORCE_ALPHABLENDING_ACCELERATION, 1, [Accelerate alphablending blits])
 fi
 
+AC_ARG_WITH(graphlcd,
+	AC_HELP_STRING([--with-graphlcd], [use GraphLCD color display, yes or no]),
+	[[withgraphlcd=$withval]],
+	[[withgraphlcd=no]]
+)
+if test x"$withgraphlcd" != xno ; then
+	AC_DEFINE(HAVE_GRAPHLCD, 1,[Define when using a GraphLCD color display device])
+fi
+
+AM_CONDITIONAL(HAVE_GRAPHLCD, test x"$withgraphlcd" != xno)
+
 AC_ARG_WITH(accelerationthreshold,
 	AC_HELP_STRING([--with-accelerationthreshold=n], [use acceleration threshold of n bytes]),
 	[[with_accelerationthreshold=$withval]],
