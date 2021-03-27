@@ -1,4 +1,5 @@
-/*
+/***************************************************************************
+ *
  * vfd.cpp
  *
  * (c) 20?? ?
@@ -18,16 +19,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  *
- ****************************************************************************
+ ***************************************************************************
  *
  * VFD/LED front panel driver for enigma2.
  *
- ****************************************************************************
+ ***************************************************************************
  *
  * Changes
  *
  * Date     By              Description
- * --------------------------------------------------------------------------
+ * -------------------------------------------------------------------------
  * 20130905 Audioniek       Code for Sparks added in.
  * 20130905 Audioniek       vfd_write_string_scrollText now uses actual
  *                          display length in stead of always 16.
@@ -49,9 +50,9 @@
  * 20201115 Audioniek       Add opt9600.
  * 20210322 Audioniek       Set display width on spark7162 to match actual
  *                          display type and time mode.
- * 20210325 Audioniek       Set correct display width on spark with VFD.
+ * 20210326 Audioniek       Set correct display width on spark with VFD.
  *
- ****************************************************************************/
+ ***************************************************************************/
 #include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -138,7 +139,7 @@ evfd::evfd()
 	else
 	{
 		vfd_type = 4;
-	}		
+	}
 #elif defined (ENABLE_ATEVIO7500)
 	vfd_type = 5;
 #elif defined (ENABLE_FORTIS_HDBOX)
@@ -360,11 +361,17 @@ void set_display_width(void)
 			vfd_width = 10;
 		}
 	}
+	#if defined(ENABLE_SPARK)
 	else if (display_type[0] == '1')  // if VFD
 	{
 		vfd_width = 8;  // reflect correct values on spark with VFD (Edision Argus Pingulux Plus)
 	}
-	#endif  // !defined(SPARK) && !defined(SPARK7162)
+	else
+	{
+		vfd_width = 4;  // display type must be LED
+	}
+	#endif  // defined(ENABLE_SPARK)
+	#endif  // !defined(ENABLE_SPARK) && !defined(ENABLE_SPARK7162)
 }
 
 void *start_loop(void *arg)
