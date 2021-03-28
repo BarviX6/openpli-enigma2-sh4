@@ -14,8 +14,9 @@ from Components.config import *
 from Components.ConfigList import ConfigList, ConfigListScreen
 from Components.Sources.StaticText import StaticText
 from Screens.Screen import Screen
-import os
 from translit import translify
+import os
+
 
 try:
 	DisplayType = evfd.getInstance().getVfdType()
@@ -26,14 +27,11 @@ except:
 DisplayTypevfd = DisplayType
 
 if DisplayTypevfd is None:
-	if stb.lower() == 'spark7162':
-		DisplayType = 8
-	else:
-		DisplayType = None
-		
+	DisplayType = 8
+
 config.plugins.vfdicon = ConfigSubsection()
-config.plugins.vfdicon.displayshow = ConfigSelection(default = "channel",
-	choices = [
+config.plugins.vfdicon.displayshow = ConfigSelection(default="channel",
+	choices=[
 		("nothing", _("blank")),
 		("channel number", _("channel number")),
 		("channel", _("channel name")),
@@ -41,8 +39,8 @@ config.plugins.vfdicon.displayshow = ConfigSelection(default = "channel",
 		("date", _("date")),
 		("day_date", _("day and date"))
 		])
-config.plugins.vfdicon.stbdisplayshow = ConfigSelection(default = "day_date",
-	choices = [
+config.plugins.vfdicon.stbdisplayshow = ConfigSelection(default="day_date",
+	choices=[
 		("nothing", _("nothing")),
 		("blank", _("time")),
 		("date", _("time and date")),
@@ -51,44 +49,45 @@ config.plugins.vfdicon.stbdisplayshow = ConfigSelection(default = "day_date",
 config.plugins.vfdicon.contrast = ConfigSlider(default=5, limits=(0, 7))
 config.plugins.vfdicon.stbcontrast = ConfigSlider(default=3, limits=(0, 7))
 config.plugins.vfdicon.uppercase = ConfigYesNo(default=True)
-config.plugins.vfdicon.textscroll = ConfigSelection(default = "1",
-	choices = [
+config.plugins.vfdicon.textscroll = ConfigSelection(default="1",
+	choices=[
 		("0", _("no")),
 		("1", _("once")),
 		("2", _("continuous"))
 		])
-config.plugins.vfdicon.textcenter = ConfigSelection(default = "0",
-	choices = [
+config.plugins.vfdicon.textcenter = ConfigSelection(default="0",
+	choices=[
 		("0", _("no")),
 		("1", _("yes"))
 		])
-config.plugins.vfdicon.showicons = ConfigSelection(default = "all",
-	choices = [
+config.plugins.vfdicon.showicons = ConfigSelection(default="all",
+	choices=[
 		("none", _("none")),
 		("partial", _("partial")),
 		("all", _("all"))
 		])
-config.plugins.vfdicon.hddicons = ConfigSelection(default = "hdd",
-	choices = [
+config.plugins.vfdicon.hddicons = ConfigSelection(default="hdd",
+	choices=[
 		("no", _("signal quality")),
 		("hdd", _("on hdd")),
 		("all mounts", _("on all mounts"))
 		])
 config.plugins.vfdicon.standbyredledon = ConfigYesNo(default=False)
 config.plugins.vfdicon.dstandbyredledon = ConfigYesNo(default=False)
-config.plugins.vfdicon.recredledon = ConfigSelection(default = "0",
-	choices = [
+config.plugins.vfdicon.recredledon = ConfigSelection(default="0",
+	choices=[
 		("0", _("off")),
 		("1", _("on")),
 		("2", _("blink"))
 		])
-config.plugins.vfdicon.translit = ConfigYesNo(default = True)
+config.plugins.vfdicon.translit = ConfigYesNo(default =True)
 config.plugins.vfdicon.translit = ConfigSelection(default = "1",
-	choices = [
+	choices =[
 		("0", _("off")),
 		("1", _("on")),
 		])		
 config.plugins.vfdicon.extMenu = ConfigYesNo(default=True)
+
 
 class ConfigVFDDisplay(Screen, ConfigListScreen):
 	def __init__(self, session):
@@ -109,7 +108,7 @@ class ConfigVFDDisplay(Screen, ConfigListScreen):
 				"red": self.cancel,
 			}, -2)
 		self.cfglist = []
-		ConfigListScreen.__init__(self, self.cfglist, session = session)
+		ConfigListScreen.__init__(self, self.cfglist, session=session)
 		self.setTitle(_("VFD display configuration"))
 		self.createSetup()
 
@@ -130,7 +129,7 @@ class ConfigVFDDisplay(Screen, ConfigListScreen):
 		self.cfglist.append(getConfigListEntry(_('Red LED on in standby'), config.plugins.vfdicon.standbyredledon))
 		self.cfglist.append(getConfigListEntry(_('Red LED on in deep standby'), config.plugins.vfdicon.dstandbyredledon))
 		self.cfglist.append(getConfigListEntry(_('Red LED during recording'), config.plugins.vfdicon.recredledon))
-		self.cfglist.append(getConfigListEntry(_('Enable translit?'), config.plugins.vfdicon.translit))			
+		self.cfglist.append(getConfigListEntry(_('Enable translit?'), config.plugins.vfdicon.translit))
 	        self.cfglist.append(getConfigListEntry(_('Show this plugin in plugin menu'), config.plugins.vfdicon.extMenu))
 		self["config"].list = self.cfglist
 		self["config"].l.setList(self.cfglist)
@@ -183,9 +182,11 @@ class ConfigVFDDisplay(Screen, ConfigListScreen):
 		self['config'].instance.moveSelection(self['config'].instance.moveUp)
 		self.newConfig()
 
+
 def opencfg(session, **kwargs):
 		session.open(ConfigVFDDisplay)
-		evfd.getInstance().vfd_write_string( "VFD SETUP" )
+		evfd.getInstance().vfd_write_string("VFD SETUP")
+
 
 def VFDdisplaymenu(menuid, **kwargs):
 	if menuid == "system":
@@ -218,8 +219,7 @@ class VFDIcons:
 		print('[spark7162VFD] Hardware displaytype:', DisplayType)
 		print('[spark7162VFD] VFD displaytype     :', DisplayTypevfd)
 		if DisplayType == 8:
-			self.__event_tracker = ServiceEventTracker(screen = self, eventmap =
-				{
+			self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
 					iPlayableService.evUpdatedInfo: self.UpdatedInfo,
 					iPlayableService.evUpdatedEventInfo: self.__evUpdatedEventInfo,
 					iPlayableService.evVideoSizeChanged: self.__evVideoSizeChanged,
@@ -228,7 +228,7 @@ class VFDIcons:
 					iPlayableService.evTuneFailed: self.__evTuneFailed,
 					iPlayableService.evStart: self.__evStart
 				})
-			config.misc.standbyCounter.addNotifier(self.onEnterStandby, initial_call = False)
+			config.misc.standbyCounter.addNotifier(self.onEnterStandby, initial_call=False)
 			session.nav.record_event.append(self.gotRecordEvent)
 			try:
 				from Plugins.SystemPlugins.Hotplug.plugin import hotplugNotifier
@@ -246,8 +246,7 @@ class VFDIcons:
 			if self.standby == False:
 				self.displayHddUsed()
 		else:
-			self.__event_tracker = ServiceEventTracker(screen = self, eventmap =
-				{
+			self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
 					iPlayableService.evStart: self.writeName,
 				})
 		print('[spark7162VFD] Set text scrolling option')
@@ -295,7 +294,7 @@ class VFDIcons:
 						servicename = "PLAY"
 						currPlay = self.session.nav.getCurrentService()
 						if currPlay != None and self.mp3Available: # show the MP3 tag
-							servicename = currPlay.info().getInfoString(iServiceInformation.sTagTitle) + " - " + currPlay.info().getInfoString(iServiceInformation.sTagArtist)
+							servicename = currPlay.info().getInfoString(iServiceInformation.sTagTitle) + "MP3" + currPlay.info().getInfoString(iServiceInformation.sTagArtist)
 							Console().ePopen("fp_control -i 28 1 -i 27 0") #Radio icon on, TV off
 						else: # show the file name
 							self.service = self.session.nav.getCurrentlyPlayingServiceReference()
@@ -305,7 +304,7 @@ class VFDIcons:
 								Console().ePopen("fp_control -i 27 1 -i 28 0") #TV icon on, Radio off
 						Console().ePopen("fp_control -i 3 1") #play
 						if config.plugins.vfdicon.hddicons.value == "no":
-							self.displayHddUsedOff() #switch off signal strength						
+							self.displayHddUsedOff() #switch off signal strength
 					else:
 						if config.plugins.vfdicon.displayshow.value == "channel number": #show the channel number
 							servicename = str(service.getChannelNum())
@@ -330,7 +329,7 @@ class VFDIcons:
 			if config.plugins.vfdicon.uppercase.value is not None:
 				servicename = servicename.upper()
 			if config.plugins.vfdicon.translit.value:
-				servicename = translify(servicename)			
+				servicename = translify(servicename)
 			evfd.getInstance().vfd_write_string(servicename[0:63])
 
 	def showCrypted(self):
@@ -356,7 +355,7 @@ class VFDIcons:
 					n = audio.getNumberOfTracks()
 					for x in range(n):
 						i = audio.getTrackInfo(x)
-						description = i.getDescription();
+						description = i.getDescription()
 						if description.find("MP3") != -1:
 							self.mp3Available = True
 						if description.find("AC3") != -1:
@@ -714,11 +713,11 @@ class VFDIcons:
 					self.displayHddUsedOff() #HDD display off
 				else:
 					used = self.CheckUsed()
-					if hddUsed != used: # if previous size different 
+					if hddUsed != used: # if previous size different
 						hddUsed = used # save current size
 						Console().ePopen("fp_control -i 30 1") #HDD grid on
 						self.showSize(used) #and show HDD
-						print("[spark7162VFD] HDD mount point:", self.mount, ", used icons:", used/10)
+						print("[spark7162VFD] HDD mount point:", self.mount, ", used icons:", used / 10)
 		else:
 			self.displayHddUsedOff()
 
@@ -766,7 +765,9 @@ class VFDIcons:
 		if config.plugins.vfdicon.hddicons.value != "no":
 			Console().ePopen("fp_control -i 22 0 -i 29 0") #HDD Full, Alert off
 
+
 VFDIconsInstance = None
+
 
 def main(session, **kwargs):
 	global VFDIconsInstance
@@ -780,7 +781,7 @@ def main(session, **kwargs):
 			VFDIconsInstance.timerEvent()
 		else:
 			if config.plugins.vfdicon.showicons.value == "none":
-				Console().ePopen("fp_control -i 46 0")		
+				Console().ePopen("fp_control -i 46 0")
 			elif config.plugins.vfdicon.hddicons.value != "no":
 				hddUsed = -1
 				VFDIconsInstance.displayHddUsed()
@@ -788,22 +789,23 @@ def main(session, **kwargs):
 	else:
 		VFDIconsInstance.writeName()
 
+
 def Plugins(**kwargs):
 	l = [PluginDescriptor(
-		name = _("spark7162VFD"),
-		description = _("VFD display configuration"),
-		where = PluginDescriptor.WHERE_MENU,
-		fnc = VFDdisplaymenu),
+		name=_("spark7162VFD"),
+		description=_("VFD display configuration"),
+		where=PluginDescriptor.WHERE_MENU,
+		fnc=VFDdisplaymenu),
 		PluginDescriptor(
-		name = _("spark7162VFD"),
-		description = _("VFD icons for spark 7162"),
-		where = PluginDescriptor.WHERE_SESSIONSTART,
-		fnc = main)]
+		name=_("spark7162VFD"),
+		description=_("VFD icons for spark 7162"),
+		where=PluginDescriptor.WHERE_SESSIONSTART,
+		fnc=main)]
 	if config.plugins.vfdicon.extMenu.value:
 		l.append(PluginDescriptor(
-			name = _("spark7162VFD"),
-			description = _("VFD display configuration for Spark 7162"),
-			where = PluginDescriptor.WHERE_PLUGINMENU,
-			icon = _("vfddisplay.png"),			
-			fnc = opencfg))
+			name=_("spark7162VFD"),
+			description=_("VFD display configuration for Spark 7162"),
+			where=PluginDescriptor.WHERE_PLUGINMENU,
+			icon = _("vfddisplay.png"),
+			fnc=opencfg))
 	return l
