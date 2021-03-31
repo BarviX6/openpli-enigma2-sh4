@@ -334,7 +334,7 @@ def init_parental_control():
 	InitParentalControl()
 
 def init_all():
-	# this is stuff from Bootstrap.py
+	# this is stuff from Startup.py
 	init_nav()
 
 	init_record_config()
