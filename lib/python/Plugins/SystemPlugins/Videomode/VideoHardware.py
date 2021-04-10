@@ -83,7 +83,7 @@ class VideoHardware:
 		return ret
 
 	def __init__(self):
-		self.last_modes_preferred =  []
+		self.last_modes_preferred = []
 		self.on_hotplug = CList()
 		self.current_mode = None
 		self.current_port = None
