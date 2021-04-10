@@ -3,6 +3,7 @@ import os
 
 # The "VideoEnhancement" is the interface to /proc/stb/video/plane.
 
+
 class VideoEnhancement:
 	firstRun = True
 
@@ -303,5 +304,6 @@ class VideoEnhancement:
 			open("/proc/stb/video/plane/psi_apply", "w").write("1")
 		except IOError:
 			print "[VideoEnhancement] couldn't apply psi values."
+
 
 VideoEnhancement()

@@ -5,13 +5,16 @@ from Components.SystemInfo import SystemInfo
 from Screens.InfoBar import InfoBar
 from Screens.Screen import Screen
 
+
 class dummyScreen(Screen):
 	skin = """<screen position="0,0" size="0,0" transparent="1">
 	<widget source="session.VideoPicture" render="Pig" position="0,0" size="0,0" backgroundColor="transparent" zPosition="1"/>
 	</screen>"""
+
 	def __init__(self, session, args=None):
 		Screen.__init__(self, session)
 		self.close()
+
 
 class LCD:
 	def __init__(self):
@@ -42,13 +45,16 @@ class LCD:
 	def isOled(self):
 		return eDBoxLCD.getInstance().isOled()
 
+
 def leaveStandby():
 	config.lcd.bright.apply()
+
 
 def standbyCounterChanged(dummy):
 	from Screens.Standby import inStandby
 	inStandby.onClose.append(leaveStandby)
 	config.lcd.standby.apply()
+
 
 def InitLcd():
 	detected = eDBoxLCD.getInstance() and eDBoxLCD.getInstance().detected()
@@ -148,6 +154,7 @@ def InitLcd():
 
 	config.misc.standbyCounter.addNotifier(standbyCounterChanged, initial_call=False)
 
+
 def setLCDLiveTv(value):
 	if "live_enable" in SystemInfo["LcdLiveTV"]:
 		open(SystemInfo["LcdLiveTV"], "w").write(value and "enable" or "disable")
@@ -160,9 +167,11 @@ def setLCDLiveTv(value):
 		except:
 			pass
 
+
 def leaveStandbyLCDLiveTV():
 	if config.lcd.showTv.value:
 		setLCDLiveTv(True)
+
 
 def standbyCounterChangedLCDLiveTV(dummy):
 	if config.lcd.showTv.value:

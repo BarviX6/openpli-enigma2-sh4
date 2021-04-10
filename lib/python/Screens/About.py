@@ -19,6 +19,7 @@ from Components.GUIComponent import GUIComponent
 import skin
 import os
 
+
 class About(Screen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
@@ -137,6 +138,7 @@ class About(Screen):
 	def showTroubleshoot(self):
 		self.session.open(Troubleshoot)
 
+
 class TranslationInfo(Screen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
@@ -173,6 +175,7 @@ class TranslationInfo(Screen):
 				"cancel": self.close,
 				"ok": self.close,
 			})
+
 
 class CommitInfo(Screen):
 	def __init__(self, session):
@@ -258,6 +261,7 @@ class CommitInfo(Screen):
 		self.project = self.project != len(self.projects) - 1 and self.project + 1 or 0
 		self.updateCommitLogs()
 
+
 class MemoryInfo(Screen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
@@ -332,6 +336,7 @@ class MemoryInfo(Screen):
 		open("/proc/sys/vm/drop_caches", "w").write("3")
 		self.getMemoryInfo()
 
+
 class MemoryInfoSkinParams(GUIComponent):
 	def __init__(self):
 		GUIComponent.__init__(self)
@@ -347,6 +352,7 @@ class MemoryInfoSkinParams(GUIComponent):
 		return GUIComponent.applySkin(self, desktop, screen)
 
 	GUI_WIDGET = eLabel
+
 
 class Troubleshoot(Screen):
 	def __init__(self, session):
