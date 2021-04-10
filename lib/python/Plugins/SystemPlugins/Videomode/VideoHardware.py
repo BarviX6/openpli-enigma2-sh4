@@ -12,9 +12,9 @@ import os
 config.av.edid_override = ConfigYesNo(default=True)
 
 class VideoHardware:
-	rates = { } # high-level, use selectable modes.
+	rates = {} # high-level, use selectable modes.
 
-	modes = { }  # a list of (high-level) modes for a certain port.
+	modes = {}  # a list of (high-level) modes for a certain port.
 
 	rates["PAL"] =			{ "50Hz":	{ 50: "pal" } }
 
@@ -83,7 +83,7 @@ class VideoHardware:
 		return ret
 
 	def __init__(self):
-		self.last_modes_preferred =  [ ]
+		self.last_modes_preferred =  []
 		self.on_hotplug = CList()
 		self.current_mode = None
 		self.current_port = None
@@ -103,9 +103,9 @@ class VideoHardware:
 
 		# take over old AVSwitch component :)
 		from Components.AVSwitch import AVSwitch
-		config.av.aspectratio.notifiers = [ ]
-		config.av.tvsystem.notifiers = [ ]
-		config.av.wss.notifiers = [ ]
+		config.av.aspectratio.notifiers = []
+		config.av.tvsystem.notifiers = []
+		config.av.wss.notifiers = []
 		AVSwitch.getOutputAspect = self.getOutputAspect
 
 #+++>
@@ -128,7 +128,7 @@ class VideoHardware:
 			modes = open("/proc/stb/video/videomode_choices").read()[:-1]
 		except IOError:
 			print "[VideoHardware] couldn't read available videomodes."
-			self.modes_available = [ ]
+			self.modes_available = []
 			return
 		self.modes_available = modes.split(' ')
 
@@ -240,14 +240,14 @@ class VideoHardware:
 	# get a list with all modes, with all rates, for a given port.
 	def getModeList(self, port):
 		print "[VideoHardware] getModeList for port", port
-		res = [ ]
+		res = []
 		for mode in self.modes[port]:
 			# list all rates which are completely valid
 			rates = [rate for rate in self.rates[mode] if self.isModeAvailable(port, mode, rate)]
 
 			# if at least one rate is ok, add this mode
 			if len(rates):
-				res.append( (mode, rates) )
+				res.append((mode, rates))
 		return res
 
 	def createConfig(self, *args):
