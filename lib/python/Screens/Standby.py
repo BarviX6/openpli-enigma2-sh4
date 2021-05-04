@@ -108,6 +108,14 @@ class StandbyScreen(Screen):
 		else:
 			self.avswitch.setInput("AUX")
 
+		try:
+			print "[Standby] Write to /proc/stb/hdmi/output"
+			open("/proc/stb/hdmi/output", "w").write("off")
+		except:
+			print "[Standby] Write to /proc/stb/hdmi/output failed."
+
+		Console().ePopen("/bin/vdstandby -a &")
+
 		gotoShutdownTime = int(config.usage.standby_to_shutdown_timer.value)
 		if gotoShutdownTime:
 			self.standbyTimeoutTimer.startLongTimer(gotoShutdownTime)
@@ -146,6 +154,7 @@ class StandbyScreen(Screen):
 			RecordTimer.RecordTimerEntry.stopTryQuitMainloop()
 		self.avswitch.setInput("ENCODER")
 		self.leaveMute()
+		Console().ePopen("/bin/vdstandby -d &")
 		if os.path.exists("/usr/script/standby_leave.sh"):
 			Console().ePopen("/usr/script/standby_leave.sh")
 		if config.usage.remote_fallback_import_standby.value:
@@ -161,6 +170,12 @@ class StandbyScreen(Screen):
 	def Power(self):
 		print "[Standby] leave standby"
 		self.close(True)
+
+		try:
+			print "[Standby] Write to /proc/stb/hdmi/output"
+			open("/proc/stb/hdmi/output", "w").write("on")
+		except:
+			print "[Standby] Write to /proc/stb/hdmi/output failed."
 
 	def setMute(self):
 		self.wasMuted = eDVBVolumecontrol.getInstance().isMuted()
@@ -364,3 +379,4 @@ class TryQuitMainloop(MessageBox):
 	def __onHide(self):
 		global inTryQuitMainloop
 		inTryQuitMainloop = False
+		
