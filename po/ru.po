@@ -4814,7 +4814,7 @@ msgid "Lebanon"
 msgstr "Lebanon"
 
 msgid "Left"
-msgstr "Лево"
+msgstr "Левый"
 
 msgid "Left from servicename"
 msgstr "слева от названия сервиса"
@@ -7054,7 +7054,7 @@ msgid "Rewrap subtitles"
 msgstr "Перепаковывать субтитры"
 
 msgid "Right"
-msgstr "Право"
+msgstr "Правый"
 
 msgid "Right from servicename"
 msgstr "справа от названия сервиса"
@@ -7084,7 +7084,7 @@ msgid "Rotor: "
 msgstr "Мотор: "
 
 msgid "Round start time on"
-msgstr "Вокруг времени начала на"
+msgstr "Около времени начала на"
 
 msgid "Russian"
 msgstr "Русский"
@@ -8215,7 +8215,7 @@ msgid "Shutdown when in Standby"
 msgstr "Выключение из режима ожидания"
 
 msgid "Side by side"
-msgstr "Лево и право"
+msgstr "Рядом"
 
 msgid "Sierra Leone"
 msgstr "Sierra Leone"
@@ -11448,7 +11448,7 @@ msgid "leave movie player..."
 msgstr "выйти из видеоплеера..."
 
 msgid "left"
-msgstr "слево"
+msgstr "левый"
 
 msgid "left, wrapped"
 msgstr "слево, завернутый"
@@ -11721,7 +11721,7 @@ msgid "rgb"
 msgstr "rgb"
 
 msgid "right"
-msgstr "право"
+msgstr "правый"
 
 msgid "right, wrapped"
 msgstr "справо, завернутый"
