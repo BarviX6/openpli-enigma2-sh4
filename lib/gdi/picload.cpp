@@ -5,6 +5,7 @@
 #include <lib/base/cfile.h>
 #include <lib/base/wrappers.h>
 #include <lib/gdi/picload.h>
+#include <libmmeimage/libmmeimage.h>
 
 extern "C" {
 #define HAVE_BOOLEAN
@@ -242,7 +243,7 @@ static unsigned char *bmp_load(const char *file,  int *x, int *y)
 			{
 				if (read(fd, wr_buffer, (*x) * 3) != ((*x) * 3))
 				{
-					eDebug("[picload] failed to read %d bytes...", ((*x) * 3));
+					eDebug("[ePicLoad] failed to read %d bytes...", ((*x) * 3));
 				}
 				for (int j = 0; j < (*x) * 3 ; j = j + 3)
 				{
@@ -487,7 +488,7 @@ static int jpeg_save(const char * filename, int ox, int oy, unsigned char *pic_b
 	cinfo.err = jpeg_std_error(&jerr);
 	jpeg_create_compress(&cinfo);
 
-	eDebug("[ePicLoad] save Thumbnail... %s",filename);
+	// eDebug("[ePicLoad] save Thumbnail... %s",filename);
 
 	jpeg_stdio_dest(&cinfo, outfile);
 
@@ -775,9 +776,40 @@ void ePicLoad::thread()
 
 void ePicLoad::decodePic()
 {
-	eDebug("[ePicLoad] decode picture... %s", m_filepara->file);
+	// eDebug("[ePicLoad] decode picture... %s", m_filepara->file);
 
 	getExif(m_filepara->file, m_filepara->id);
+	if (m_filepara->id == F_JPEG)
+	{
+		eDebug("[ePicLoad] hardware decode picture... %s", m_filepara->file);
+		m_filepara->pic_buffer = NULL;
+		FILE *fp;
+
+		if (!(fp = fopen(m_filepara->file, "rb")))
+			return; // software decode won't find the file either...
+
+		if (get_jpeg_img_size(fp, (unsigned int *)&m_filepara->ox, (unsigned int *)&m_filepara->oy) == LIBMMEIMG_SUCCESS)
+		{
+			// to get the best picture quality even if it rotated later
+			float scale = (float)(m_filepara->max_x > m_filepara->max_y ? m_filepara->max_x : m_filepara->max_y) / (m_filepara->ox > m_filepara->oy ? m_filepara->ox : m_filepara->oy);
+			int imx = (int)(m_filepara->ox * scale);
+			int imy = (int)(m_filepara->oy * scale);
+
+			if (decode_jpeg(fp, m_filepara->ox, m_filepara->oy, imx, imy, (char **)&m_filepara->pic_buffer) == LIBMMEIMG_SUCCESS)
+			{
+				m_filepara->ox = imx;
+				m_filepara->oy = imy;
+				fclose(fp);
+				return;
+			}
+		}
+		eDebug("[ePicLoad] hardware decode error");
+		fclose(fp);
+		m_filepara->pic_buffer = NULL;
+	}
+
+	//eDebug("[ePicLoad] decode picture... %s", m_filepara->file);
+
 	switch(m_filepara->id)
 	{
 		case F_PNG:	png_load(m_filepara, m_conf.background);
@@ -795,7 +827,7 @@ void ePicLoad::decodePic()
 
 void ePicLoad::decodeThumb()
 {
-	eDebug("[ePicLoad] get Thumbnail... %s", m_filepara->file);
+	// eDebug("[ePicLoad] get Thumbnail... %s", m_filepara->file);
 
 	bool exif_thumbnail = false;
 	bool cachefile_found = false;
@@ -811,7 +843,7 @@ void ePicLoad::decodeThumb()
 			m_filepara->file = strdup(THUMBNAILTMPFILE);
 			m_filepara->id = F_JPEG; // imbedded thumbnail seem to be jpeg
 			exif_thumbnail = true;
-			eDebug("[ePicLoad] decodeThumb: Exif Thumbnail found");
+		//	eDebug("[ePicLoad] decodeThumb: Exif Thumbnail found");
 		}
 		//else
 		//	eDebug("[ePicLoad] decodeThumb: NO Exif Thumbnail found");
@@ -854,13 +886,56 @@ void ePicLoad::decodeThumb()
 				free(m_filepara->file);
 				m_filepara->file = strdup(cachefile.c_str());
 				m_filepara->id = F_JPEG;
-				eDebug("[ePicLoad] Cache File %s found", cachefile.c_str());
+			//	eDebug("[ePicLoad] Cache File %s found", cachefile.c_str());
 			}
 		}
 	}
 
-	switch (m_filepara->id)
+	int hw_decoded = 0;
+	if (m_filepara->id == F_JPEG)
 	{
+		eDebug("[Picload] hardware decode picture... %s",m_filepara->file);
+		m_filepara->pic_buffer = NULL;
+		FILE *fp;
+
+		if (!(fp = fopen(m_filepara->file, "rb")))
+			return; // software decode won't find the file either...
+		
+		if (get_jpeg_img_size(fp, (unsigned int *)&m_filepara->ox, (unsigned int *)&m_filepara->oy) == LIBMMEIMG_SUCCESS)
+		{
+			int imx, imy;
+			if (m_filepara->ox <= m_filepara->oy)
+			{
+				imy = m_conf.thumbnailsize;
+				imx = (int)( (m_conf.thumbnailsize * ((double)m_filepara->ox)) / ((double)m_filepara->oy) );
+			}
+			else
+			{
+				imx = m_conf.thumbnailsize;
+				imy = (int)( (m_conf.thumbnailsize * ((double)m_filepara->oy)) / ((double)m_filepara->ox) );
+			}
+			
+			if (decode_jpeg(fp, m_filepara->ox, m_filepara->oy, imx, imy, (char **)&m_filepara->pic_buffer) == LIBMMEIMG_SUCCESS)
+			{
+				m_filepara->ox = imx;
+				m_filepara->oy = imy;
+				fclose(fp);
+				hw_decoded = 1;
+			}
+		}
+
+		if (!hw_decoded)
+		{
+			eDebug("hardware decode error");
+		
+			fclose(fp);
+		}
+	}
+
+	if (!hw_decoded)
+	{
+		switch(m_filepara->id)
+		{
 		case F_PNG:	png_load(m_filepara, m_conf.background, true);
 				break;
 		case F_JPEG:	m_filepara->pic_buffer = jpeg_load(m_filepara->file, &m_filepara->ox, &m_filepara->oy, m_filepara->max_x, m_filepara->max_y);
@@ -871,6 +946,7 @@ void ePicLoad::decodeThumb()
 				break;
 		case F_SVG:	svg_load(m_filepara, true);
 				break;
+		}
 	}
 	//eDebug("[ePicLoad] getThumb picture loaded %s", m_filepara->file);
 
@@ -886,22 +962,26 @@ void ePicLoad::decodeThumb()
 				::mkdir(cachedir.c_str(), 0755);
 
 			// Resize for Thumbnail
-			int imx, imy;
-			if (m_filepara->ox <= m_filepara->oy)
+			if(!hw_decoded)
 			{
-				imy = m_conf.thumbnailsize;
-				imx = (int)( (m_conf.thumbnailsize * ((double)m_filepara->ox)) / ((double)m_filepara->oy) );
-			}
-			else
-			{
-				imx = m_conf.thumbnailsize;
-				imy = (int)( (m_conf.thumbnailsize * ((double)m_filepara->oy)) / ((double)m_filepara->ox) );
-			}
+			
+				int imx, imy;
+				if (m_filepara->ox <= m_filepara->oy)
+				{
+					imy = m_conf.thumbnailsize;
+					imx = (int)( (m_conf.thumbnailsize * ((double)m_filepara->ox)) / ((double)m_filepara->oy) );
+				}
+				else
+				{
+					imx = m_conf.thumbnailsize;
+					imy = (int)( (m_conf.thumbnailsize * ((double)m_filepara->oy)) / ((double)m_filepara->ox) );
+				}
 
 			// eDebug("[ePicLoad] getThumb resize from %dx%d to %dx%d", m_filepara->ox, m_filepara->oy, imx, imy);
-			m_filepara->pic_buffer = color_resize(m_filepara->pic_buffer, m_filepara->ox, m_filepara->oy, imx, imy);
-			m_filepara->ox = imx;
-			m_filepara->oy = imy;
+				m_filepara->pic_buffer = color_resize(m_filepara->pic_buffer, m_filepara->ox, m_filepara->oy, imx, imy);
+				m_filepara->ox = imx;
+				m_filepara->oy = imy;
+			}
 
 			if (jpeg_save(cachefile.c_str(), m_filepara->ox, m_filepara->oy, m_filepara->pic_buffer))
 				eDebug("[ePicLoad] getThumb: error saving cachefile");
@@ -922,7 +1002,7 @@ void ePicLoad::gotMessage(const Message &msg)
 			msg_main.send(Message(Message::decode_finished));
 			break;
 		case Message::quit: // called from decode thread
-			eDebug("[ePicLoad] decode thread ... got quit msg");
+			// eDebug("[ePicLoad] decode thread ... got quit msg");
 			quit(0);
 			break;
 		case Message::decode_finished: // called from main thread
@@ -952,7 +1032,7 @@ int ePicLoad::startThread(int what, const char *file, int x, int y, bool async)
 {
 	if(async && threadrunning && m_filepara != NULL)
 	{
-		eDebug("[ePicLoad] thread running");
+		// eDebug("[ePicLoad] thread running");
 		m_filepara->callback = false;
 		return 1;
 	}
@@ -1075,6 +1155,13 @@ bool ePicLoad::getExif(const char *filename, int fileType, int Thumb)
 	return true;
 }
 
+static void fillrow_uint(unsigned int *row_buffer, unsigned int background, int len)
+{
+	unsigned int *end_buffer = (unsigned int *) row_buffer + len;
+	while(row_buffer < end_buffer)
+		*row_buffer++ = background;
+}
+
 int ePicLoad::getData(ePtr<gPixmap> &result)
 {
 	result = 0;
@@ -1098,7 +1185,6 @@ int ePicLoad::getData(ePtr<gPixmap> &result)
 	result = new gPixmap(m_filepara->max_x, m_filepara->max_y, m_filepara->bits == 8 ? 8 : 32,
 				NULL, m_filepara->bits == 8 ? gPixmap::accelAlways : gPixmap::accelAuto);
 	gUnmanagedSurface *surface = result->surface;
-
 	// original image    : ox, oy
 	// surface size      : max_x, max_y
 	// after aspect calc : scrx, scry
@@ -1136,9 +1222,11 @@ int ePicLoad::getData(ePtr<gPixmap> &result)
 	}
 	float xscale = (float)(orientation < 5 ? m_filepara->ox : m_filepara->oy) / (float)scrx; // scale factor as result of screen and image size
 	float yscale = (float)(orientation < 5 ? m_filepara->oy : m_filepara->ox) / (float)scry;
-	int xoff = (m_filepara->max_x - scrx) / 2;  // borders as result of screen and image aspect
-	int yoff = (m_filepara->max_y - scry) / 2;
-	//eDebug("[getData] ox=%d oy=%d max_x=%d max_y=%d scrx=%d scry=%d xoff=%d yoff=%d xscale=%f yscale=%f aspect=%f bits=%d orientation=%d", m_filepara->ox, m_filepara->oy, m_filepara->max_x, m_filepara->max_y, scrx, scry, xoff, yoff, xscale, yscale, m_conf.aspect_ratio, m_filepara->bits, orientation);
+	int xfill = m_filepara->max_x - scrx;
+	int xoff = xfill / 2;  // borders as result of screen and image aspect
+	int yfill = m_filepara->max_y - scry;
+	int yoff = yfill / 2;
+	//eDebug("[getData] ox=%d oy=%d max_x=%d max_y=%d scrx=%d scry=%d xfill=%d yfill=%d xoff=%d yoff=%d xscale=%f yscale=%f aspect=%f bits=%d orientation=%d", m_filepara->ox, m_filepara->oy, m_filepara->max_x, m_filepara->max_y, scrx, scry, xfill, yfill, xoff, yoff, xscale, yscale, m_conf.aspect_ratio, m_filepara->bits, orientation);
 
 	unsigned char *tmp_buffer = ((unsigned char *)(surface->data));
 	unsigned char *origin = m_filepara->pic_buffer;
@@ -1149,65 +1237,73 @@ int ePicLoad::getData(ePtr<gPixmap> &result)
 	}
 
 	// fill borders with background color
-	if (xoff != 0 || yoff != 0) {
+	if (xfill != 0 || yfill != 0) {
 		unsigned int background;
+		gRGB bg(m_conf.background);
 		if (m_filepara->bits == 8) {
-			gRGB bg(m_conf.background);
 			background = surface->clut.findColor(bg);
+			if (surface->clut.data && bg != surface->clut.data[background] && surface->clut.colors < 256) {
+				gRGB* newClut = new gRGB[surface->clut.colors + 1];
+				for (int c = 0; c < surface->clut.colors; c++) {
+					newClut[c] = surface->clut.data[c];
+				}
+				newClut[surface->clut.colors] = bg;
+				delete [] surface->clut.data;
+				surface->clut.data = newClut;
+				background = surface->clut.colors;
+				surface->clut.colors++;
+			}
 		}
 		else {
-			background = m_conf.background;
+			bg.a = 255 - bg.a;
+			background = bg.argb();
 		}
-		if (yoff != 0) {
-			if (m_filepara->bits == 8)
-			{
-				unsigned char* row_buffer;
-				row_buffer = (unsigned char *) tmp_buffer;
-				for (int x = 0; x < m_filepara->max_x; ++x) // fill first line
-					*row_buffer++ = background;
+		if (yfill != 0) {
+			if (surface->bypp == 1) {
+				if (yfill == 1) { // Just fill last row
+					memset(tmp_buffer + (m_filepara->max_y-1)*surface->stride, background, m_filepara->max_x);
+				} else { // Fill the first row
+					memset(tmp_buffer, background, m_filepara->max_x);
+				}
+			} else {
+				if (yfill == 1) { // Just fill last row
+					fillrow_uint((unsigned int *) (tmp_buffer + (m_filepara->max_y-1)*surface->stride), background, m_filepara->max_x);
+				} else { // Fill the first row
+					fillrow_uint((unsigned int *) tmp_buffer, background, m_filepara->max_x);
+				}
 			}
-			else
-			{
-				unsigned int* row_buffer;
-				row_buffer = (unsigned int *) tmp_buffer;
-				for (int x = 0; x < m_filepara->max_x; ++x) // fill first line
-					*row_buffer++ = background;
+			if (yfill != 1) { // Fill the rest
+				int y;
+				#pragma omp parallel for
+				for (y = 1; y < yoff; ++y) // copy from first line
+					memcpy(tmp_buffer + y*surface->stride, tmp_buffer,
+						m_filepara->max_x * surface->bypp);
+				#pragma omp parallel for
+				for (y = yoff + scry; y < m_filepara->max_y; ++y)
+					memcpy(tmp_buffer + y * surface->stride, tmp_buffer,
+						m_filepara->max_x * surface->bypp);
 			}
-			int y;
-			#pragma omp parallel for
-			for (y = 1; y < yoff; ++y) // copy from first line
-				memcpy(tmp_buffer + y*surface->stride, tmp_buffer,
-					m_filepara->max_x * surface->bypp);
-			#pragma omp parallel for
-			for (y = yoff + scry; y < m_filepara->max_y; ++y)
-				memcpy(tmp_buffer + y * surface->stride, tmp_buffer,
-					m_filepara->max_x * surface->bypp);
 		}
-		if (xoff != 0) {
-			if (m_filepara->bits == 8)
-			{
-				unsigned char* row_buffer = (unsigned char *) (tmp_buffer + yoff * surface->stride);
-				int x;
-				for (x = 0; x < xoff; ++x) // fill left side of first line
-					*row_buffer++ = background;
-				row_buffer += scrx;
-				for (x = xoff + scrx; x < m_filepara->max_x; ++x) // fill right side of first line
-					*row_buffer++ = background;
-			}
-			else {
-				unsigned int* row_buffer = (unsigned int *) (tmp_buffer + yoff * surface->stride);
-				int x;
-				for (x = 0; x < xoff; ++x) // fill left side of first line
-					*row_buffer++ = background;
-				row_buffer += scrx;
-				for (x = xoff + scrx; x < m_filepara->max_x; ++x) // fill right side of first line
-					*row_buffer++ = background;
+		if (xfill != 0) {
+			if(surface->bypp == 1) {
+				unsigned char *row_buffer = (unsigned char *) (tmp_buffer + yoff * surface->stride);
+				if (xoff != 0) // Only fill the first column if there is one
+					memset(row_buffer, background, xoff);
+				row_buffer += xoff + scrx;
+				memset(row_buffer, background, m_filepara->max_x - (xoff + scrx));
+			} else {
+				unsigned int *row_buffer = (unsigned int *) (tmp_buffer + yoff * surface->stride);
+				if (xoff != 0) // Only fill the first column if there is one
+					fillrow_uint(row_buffer, background, xoff);
+				row_buffer += xoff + scrx;
+				fillrow_uint(row_buffer, background, m_filepara->max_x - (xoff + scrx));
 			}
 			#pragma omp parallel for
 			for (int y = yoff + 1; y < scry; ++y) { // copy from first line
-				memcpy(tmp_buffer + y*surface->stride,
-					tmp_buffer + yoff * surface->stride,
-					xoff * surface->bypp);
+				if (xoff != 0) // Only fill the first column if there is one
+					memcpy(tmp_buffer + y*surface->stride,
+						tmp_buffer + yoff * surface->stride,
+						xoff * surface->bypp);
 				memcpy(tmp_buffer + y*surface->stride + (xoff + scrx) * surface->bypp,
 					tmp_buffer + yoff * surface->stride + (xoff + scrx) * surface->bypp,
 					(m_filepara->max_x - scrx - xoff) * surface->bypp);
@@ -1402,10 +1498,12 @@ RESULT ePicLoad::setPara(int width, int height, double aspectRatio, int as, bool
 	m_conf.resizetype = resizeType;
 
 	if(bg_str[0] == '#' && strlen(bg_str)==9)
-		m_conf.background = strtoul(bg_str+1, NULL, 16) | 0xFF000000;
+		m_conf.background = strtoul(bg_str+1, NULL, 16);
+	/*
 	eDebug("[ePicLoad] setPara max-X=%d max-Y=%d aspect_ratio=%lf cache=%d resize=%d bg=#%08X auto_orient=%d",
 			m_conf.max_x, m_conf.max_y, m_conf.aspect_ratio,
 			(int)m_conf.usecache, (int)m_conf.resizetype, m_conf.background, m_conf.auto_orientation);
+	*/
 	return 1;
 }
 
@@ -1440,7 +1538,7 @@ SWIG_VOID(int) loadPic(ePtr<gPixmap> &result, std::string filename, int x, int y
 {
 	long asp1, asp2;
 	result = 0;
-	eDebug("[loadPic] deprecated loadPic function used!!! please use the non blocking version! you can see demo code in Pictureplayer plugin... this function is removed in the near future!");
+	eDebug("[ePicLoad] deprecated loadPic function used! please use the non blocking version! you can see demo code in Pictureplayer plugin... this function is removed in the near future!");
 	ePicLoad mPL;
 
 	switch(aspect)
