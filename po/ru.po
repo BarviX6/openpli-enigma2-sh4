@@ -3623,6 +3623,9 @@ msgstr "Управление дополнениями"
 msgid "Extensions menu"
 msgstr "Меню дополнений"
 
+msgid "Exteplayer3 version: "
+msgstr "Версия Exteplayer3: "
+
 msgid "External"
 msgstr "Внешний"
 
@@ -4116,6 +4119,9 @@ msgstr "Зеленая"
 
 msgid "Grenada"
 msgstr "Grenada"
+
+msgid "GStreamer version: "
+msgstr "Версия GStreamer: "
 
 msgid "Guadeloupe"
 msgstr "Guadeloupe"

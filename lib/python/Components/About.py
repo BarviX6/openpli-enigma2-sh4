@@ -73,6 +73,14 @@ def getFFmpegVersionString():
 	except:
 		return _("unknown")
 
+def getExteplayer3VersionString():
+	try:
+		from glob import glob
+		exteplayer3 = [x.split("Version: ") for x in open(glob("/var/lib/opkg/info/exteplayer3.control")[0], "r") if x.startswith("Version:")][0]
+		version = exteplayer3[1].split("-")[0].replace("\n","")
+		return "%s" % version.split("+")[0]
+	except:
+		return _("unknown")
 
 def getKernelVersionString():
 	try:

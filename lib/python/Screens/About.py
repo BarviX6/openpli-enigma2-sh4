@@ -58,6 +58,10 @@ class About(Screen):
 		FFmpegVersion = _("FFmpeg version: ") + about.getFFmpegVersionString()
 		self["FFmpegVersion"] = StaticText(FFmpegVersion)
 		AboutText += FFmpegVersion + "\n"
+		
+		Exteplayer3Version = _("Exteplayer3 version: ") + about.getExteplayer3VersionString()
+		self["Exteplayer3Version"] = StaticText(Exteplayer3Version)
+		AboutText += Exteplayer3Version + "\n"		
 
 		AboutText += _("Python version: ") + about.getPythonVersionString() + "\n"
 
